@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Physics declarations
-steril = True
+sterile = True
 
 mixing = np.array([[2. / 3., 1. / 6., 1. / 6.],
                    [1. / 3., 1. / 3., 1. / 3.],
@@ -12,8 +12,8 @@ m_1 = 1
 m_2 = 3
 m_3 = 10
 
-m_steril = 24
-steril_angle = 0.05
+m_sterile = 24
+sterile_angle = 0.05
 
 mass = [m_1, m_2, m_3]
 color = ['r', 'b', 'g']
@@ -22,23 +22,22 @@ nus_flavour = [r"$\nu_e$", r"$\nu_{\mu}$", r"$\nu_{\tau}$"]
 nus_mass = [r"$v_1$", r"$v_2$", r"$v_3$"]
 
 # add stuff if we plot the sterile case
-if steril:
-    mass.append(m_steril)
+if sterile:
     color.append("m")
 
-    steril_fill = 1 + steril_angle - 3 * steril_angle
-
-    mixing = np.append(mixing, [[steril_angle, steril_angle, steril_angle]], axis=0)
-    mixing = np.append(mixing, [[steril_angle], [steril_angle], [steril_angle], [steril_fill]], axis=1)
-
+    mass.append(m_sterile)
     nus_flavour.append(r"$\nu_{s}$")
     nus_mass.append(r"$v_4$")
+
+    sterile_fill = 1 + sterile_angle - 3 * sterile_angle
+    mixing = np.append(mixing, [[sterile_angle, sterile_angle, sterile_angle]], axis=0)
+    mixing = np.append(mixing, [[sterile_angle], [sterile_angle], [sterile_angle], [sterile_fill]], axis=1)
 
 print mixing
 stacked_mixing = np.cumsum(mixing, axis=1)
 
 # actual plotting
-y_max = np.ceil(1.1 * m_steril)
+y_max = np.ceil(1.1 * m_sterile)
 fontsize = 30
 
 fig = plt.figure(figsize=(8, 6), dpi=100)
@@ -46,7 +45,7 @@ fig = plt.figure(figsize=(8, 6), dpi=100)
 plt.rc('text', usetex=True)
 
 for row in reversed(range(len(stacked_mixing))):
-    ax = plt.barh(mass, stacked_mixing[:, row], color=color[row], align='center', height=0.5)
+    plt.barh(mass, stacked_mixing[:, row], color=color[row], align='center', height=0.5)
 
 ax = plt.gca()
 ax.get_xaxis().set_visible(False)
@@ -98,7 +97,7 @@ for idx, (m_low, m_high) in enumerate(zip(mass[:-1], mass[1:])):
                  xytext=(offset_text, midpoint),
                  **parmas_text)
 
-if steril:
+if sterile:
     plt.savefig("mass_steril.pdf", transparent=True)
 else:
     plt.savefig("mass_classic.pdf", transparent=True)
