@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Physics declarations
 steril = True
 
-mixing = np.array([[2./3., 1./6., 1./6.],
-                   [1./3., 1./3., 1./3.],
-                   [1./9., 4./9., 4./9.]])
-
+mixing = np.array([[2. / 3., 1. / 6., 1. / 6.],
+                   [1. / 3., 1. / 3., 1. / 3.],
+                   [1. / 9., 4. / 9., 4. / 9.]])
 
 m_1 = 1
 m_2 = 3
@@ -15,33 +15,38 @@ m_3 = 10
 m_steril = 24
 steril_angle = 0.05
 
-y_max = 25
-fontsize = 30
-
 mass = [m_1, m_2, m_3]
 color = ['r', 'b', 'g']
 
+nus_flavour = [r"$\nu_e$", r"$\nu_{\mu}$", r"$\nu_{\tau}$"]
+nus_mass = [r"$v_1$", r"$v_2$", r"$v_3$"]
+
+# add stuff if we plot the sterile case
 if steril:
     mass.append(m_steril)
     color.append("m")
 
-    steril_fill = 1 + steril_angle - 3*steril_angle
+    steril_fill = 1 + steril_angle - 3 * steril_angle
 
-    mixing = np.array([[2. / 3., 1. / 6., 1. / 6., steril_angle],
-                       [1. / 3., 1. / 3., 1. / 3., steril_angle],
-                       [1. / 9., 4. / 9., 4. / 9., steril_angle],
-                       [ steril_angle,     steril_angle,     steril_angle, steril_fill]])
+    mixing = np.append(mixing, [[steril_angle, steril_angle, steril_angle]], axis=0)
+    mixing = np.append(mixing, [[steril_angle], [steril_angle], [steril_angle], [steril_fill]], axis=1)
 
-stacked = np.cumsum(mixing, axis=1)
+    nus_flavour.append(r"$\nu_{s}$")
+    nus_mass.append(r"$v_4$")
+
+print mixing
+stacked_mixing = np.cumsum(mixing, axis=1)
+
+# actual plotting
+y_max = np.ceil(1.1 * m_steril)
+fontsize = 30
 
 fig = plt.figure(figsize=(8, 6), dpi=100)
 
 plt.rc('text', usetex=True)
-plt.rc('font', family='Fira Sans')
 
-for row in reversed(range(len(stacked))):
-    ax = plt.barh(mass, stacked[:, row], color=color[row], align='center', height=0.4)
-
+for row in reversed(range(len(stacked_mixing))):
+    ax = plt.barh(mass, stacked_mixing[:, row], color=color[row], align='center', height=0.5)
 
 ax = plt.gca()
 ax.get_xaxis().set_visible(False)
@@ -50,81 +55,48 @@ ax.spines['right'].set_color('none')
 ax.spines['left'].set_color('none')
 ax.spines['top'].set_color('none')
 ax.spines['bottom'].set_color('none')
+
 ax.yaxis.set_ticks_position('left')
-
-
-
-plt.arrow(0, 0, 0, y_max, width=0.002, color='k', clip_on=False, head_width=0.02, head_length=0.2)
+ax.arrow(0, 0, 0, y_max, width=0.002, color='k', clip_on=False, head_width=0.02, head_length=0.2)
 plt.xlim([0, 1.2])
 plt.ylim([0, y_max])
-
-if steril:
-    plt.yticks(mass, ["$v_1$", "$v_2$", "$v_3$", "$v_4$"], fontsize=fontsize)
-else:
-    plt.yticks(mass, ["$v_1$", "$v_2$", "$v_3$"], fontsize=fontsize)
-
+plt.yticks(mass, nus_mass, fontsize=fontsize)
 plt.ylabel("mass", fontsize=fontsize)
 
-
+# generic settings for annotation
 params_arrow = {'xycoords': 'data', "textcoords": 'data', 'arrowprops': {'arrowstyle': '<->'}}
 parmas_text = {'xycoords': 'data', "textcoords": 'data', 'verticalalignment': 'center', 'fontsize': fontsize}
 
-offset_flavour = -0.3
-
-
-plt.annotate(r"$\nu_e$", xytext=(1./3, offset_flavour), xy=(0,1), color='r', horizontalalignment='center', **parmas_text)
-plt.annotate(r"$\nu_{\mu}$", xytext=(0.75, offset_flavour), xy=(0,1), color='b', horizontalalignment='center', **parmas_text)
-plt.annotate(r"$\nu_{\tau}$", xytext=(0.91, offset_flavour), xy=(0,1), color='g', horizontalalignment='center',**parmas_text)
+# Flavour eigenstate labels
+for idx, nu in enumerate(nus_flavour):
+    x_midpoint = stacked_mixing[0, idx] - mixing[0, idx] / 2
+    offset_flavour = -0.3
+    plt.annotate(nu,
+                 xytext=(x_midpoint, offset_flavour),
+                 xy=(0, 1), color=color[idx],
+                 horizontalalignment='center',
+                 **parmas_text)
 
 # Mass splittings
-# Arrows
-
 offset_arrow = 1.1
 offset_text = offset_arrow + 0.04
 
-plt.annotate(
-    '', xy=(offset_arrow, m_1),
-    xytext=(offset_arrow, m_2),
-    **params_arrow
-    )
-plt.annotate(
-    '', xy=(offset_arrow, m_2),
-    xytext=(offset_arrow, m_3),
-    **params_arrow)
+for idx, (m_low, m_high) in enumerate(zip(mass[:-1], mass[1:])):
+    print m_low, m_high
+    midpoint = (m_high - m_low) / 2 + m_low
 
-# Text
-plt.annotate(
-    '$\Delta m_{12}^2$',
-    xy=(offset_text, m_2-m_1),
-    xytext=(offset_text, m_2-m_1),
-    **parmas_text)
+    # arrows
+    plt.annotate('',
+                 xy=(offset_arrow, m_low),
+                 xytext=(offset_arrow, m_high),
+                 **params_arrow
+                 )
 
-plt.annotate(
-    '$\Delta m_{23}^2$',
-    xy=(offset_text, m_3-m_2),
-    xytext=(offset_text, m_3-m_2),
-    **parmas_text
-)
-
-if steril:
-
-    plt.annotate(r"$\nu_{s}$", xytext=(1.02, offset_flavour), xy=(0, 1), color=color[3], horizontalalignment='center',
+    # labels
+    plt.annotate('$\Delta m_{%(low)s%(high)s}^2$' % {'low': str(idx + 1), 'high': str(idx + 2)},
+                 xy=(0, 0),
+                 xytext=(offset_text, midpoint),
                  **parmas_text)
-    plt.annotate(
-        '$\Delta m_{34}^2$',
-        xy=(offset_text, m_3 - m_2),
-        xytext=(offset_text, (mass[3] - mass[2])/2 + mass[2]),
-        **parmas_text
-    )
-
-    plt.annotate(
-        '', xy=(offset_arrow, mass[3]),
-        xytext=(offset_arrow, mass[2]),
-        **params_arrow
-    )
-
-
-
 
 if steril:
     plt.savefig("mass_steril.pdf", transparent=True)
